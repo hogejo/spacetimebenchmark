@@ -4,58 +4,24 @@ A repository to properly benchmark SpacetimeDB against other systems, following 
 [performance keynote video](https://www.youtube.com/watch?v=C7gJ_UxVnSk) and my
 [pull request](https://github.com/clockworklabs/SpacetimeDB/pull/4457).
 
-Status: I am currently living my regular life and waiting for SpacetimeDB's response.
+Status:
+- I closed the pull request
+- I am moving my work here. See the [original/](original/README.md) directory.
+- I am developing two scenarios to properly benchmark SpacetimeDB against other systems.
 
-## An improved scenario
+## Scenarios
 
-THIS IS A WORK IN PROGRESS DEFINITION OF A BENCHMARK SCENARIO.
+### [Bank in `bank/`](bank/README.md)
 
-- Let's keep it simple and close to the original SpacetimeDB benchmark
-- Let's not create another database benchmarking suite or comparison
-  - Unless SpacetimeDB and others put effort into this
-- Let's keep it fun but respectful
+This is an improved version of the original SpacetimeDB benchmark, with a full specification of the requirements.
+The scenario is to test sheer DB performance like Clockwork Labs' keynote video: how many TPS can you achieve with your
+database?
 
-Most important question:
-- Must there be an RPC server between the client and the database?
-- If so it must have a function and that must be benchmarked too.
+### [Chat in `chat/`](chat/README.md)
 
-### WIP: Scenario requirements
-
-This is what I plan to implement in coming commits:
-
-- One table that stores account balance information
-- One database instance
-- Out-of-the-box configuration for the database instance
-    - No caching or optimisation
-- Requests can be pre-computed and cached, or generated on the fly
-- Configurable:
-    - number of accounts
-    - initial balance of each account
-    - number of concurrent connections
-    - number of maximum in-flight requests
-- Each request's result must be verified against the expected result
-- Some (configurable number of) requests should fail to check the database's robustness:
-    - trying to transfer from the same account to the same account
-    - trying to transfer from an account that does not exist
-    - trying to transfer from an account that does not have enough funds
-    - trying to transfer to an account that does not exist
-- No account balance can go below zero
-  - The system must prevent this and fail any request that would result in a negative balance
-
-### Planned systems:
-
-Yeah, just moving the code I wrote for the PR into a separate repository:
-
-- Benchmarking client calling reducers on SpacetimeDB
-- Benchmarking client calling stored procedures in PostgreSQL
-
-### Production is not like this! (Goals and non-goals)
-
-No, this is not like a production scenario.
-It lacks extra business logic, a lifelike database schema, authentication, etc.
-
-The goal with this benchmark is to compare apples to apples.
-This benchmark also tries to be as close as possible to the original SpacetimeDB benchmark. See below.
+This is a proper benchmark of a real-world scenario. This one aims to properly show SpacetimeDB's advantage - how it is
+a database and a server in one package. Because of that, the specification allows competing systems to come in a similar
+package or with separate DB and backend.
 
 ## Background
 
@@ -76,7 +42,7 @@ SpacetimeDB 2.0 was released with the aforementioned video on YouTube. In the vi
 This shows more than a 10x performance improvement over other systems.
 
 They also provided the source code for the benchmark at their
-[GitHub repo](https://github.com/clockworklabs/SpacetimeDB/blob/master/templates/keynote-2/README.md).
+[GitHub repo](https://github.com/clockworklabs/SpacetimeDB/blob/abbcec4ab357b956f6a2d498a666c1516edcb355/templates/keynote-2/README.md).
 
 ### Details of the SpacetimeDB benchmark
 
@@ -124,10 +90,9 @@ think of that can similarly reduce the overhead:
 - A database server with stored procedures, notification channels with or without an application server in front of it:
   - PostgreSQL + PL/pgSQL ([or other](https://wiki.postgresql.org/wiki/PL_Matrix))
 
-Feel free to help me extend this list with your favourite combination. Let's keep it simple and close to the original
-SpacetimeDB benchmark.
-
 ### SpacetimeDB is in a different league
 
-I have to note that SpacetimeDB is not completely free and/or open source.
-See [their licence](https://github.com/clockworklabs/SpacetimeDB/blob/master/LICENSE.txt).
+I have to note that SpacetimeDB is not completely free and/or open source. I avoid copying their work in this repository
+because of that. See [their licence](https://github.com/clockworklabs/SpacetimeDB/blob/master/LICENSE.txt).
+
+This repository is GPLv3 licensed.
