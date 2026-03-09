@@ -2,7 +2,7 @@
 
 A simple benchmark based on the original SpacetimeDB keynote. The aim is to compare transactions per second accross
 databases. It is expected that SpacetimeDB will not win this scenario. For a scenario that showcases the promise of
-SpacetimeDB being a database and server in one, see the [chat scenario](../chat/README.md)
+SpacetimeDB being a database and server in one, see the [chat scenario](../chat/README.md).
 
 ## Architecture requirements
 
@@ -26,7 +26,7 @@ There are some rules for the benchmarking clients to keep it reasonable and fair
     - number of accounts
     - initial balance of each account
     - number of concurrent connections
-    - number of maximum in-flight requests
+    - number of (total) maximum in-flight requests
 - Each request's result must be verified against the expected result (success or failure)
 - Some (configurable number of) requests should fail to check the database's robustness:
     - trying to transfer from the same account to the same account
