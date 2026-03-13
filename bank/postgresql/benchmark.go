@@ -23,7 +23,7 @@ func (c *Counters) Reset() {
 	c.errors.Store(0)
 }
 
-func isAcceptedError(err error, request *Request) bool {
+func isAcceptedError(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -46,7 +46,7 @@ func worker(wg *sync.WaitGroup, counters *Counters, needToStop *atomic.Bool, poo
 			if err == nil && request.expectedSuccess {
 				break
 			}
-			acceptedError = isAcceptedError(err, request)
+			acceptedError = isAcceptedError(err)
 			if err != nil && !request.expectedSuccess && acceptedError {
 				break
 			}

@@ -44,28 +44,6 @@ func closePool(pool *pgxpool.Pool) {
 	pool.Close()
 }
 
-func acquireConnections(pool *pgxpool.Pool, num int) ([]*pgxpool.Conn, error) {
-	connections := make([]*pgxpool.Conn, num)
-	for i := range connections {
-		c, err := pool.Acquire(context.Background())
-		if err != nil {
-			// Release already acquired connections
-			for j := 0; j < i; j++ {
-				connections[j].Release()
-			}
-			return nil, fmt.Errorf("failed to acquire connection %d: %v", i, err)
-		}
-		connections[i] = c
-	}
-	return connections, nil
-}
-
-func releaseConnections(connections []*pgxpool.Conn) {
-	for _, c := range connections {
-		c.Release()
-	}
-}
-
 func prepareDatabase(pool *pgxpool.Pool, config Config) error {
 	ctx, cancel := context.WithTimeout(context.Background(), connectionTimeout)
 	defer cancel()
