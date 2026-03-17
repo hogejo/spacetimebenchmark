@@ -1,0 +1,25 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+# Do not set tab_width, so the tab size can be set by the editor.
+indent_size = tab
+indent_style = tab
+insert_final_newline = true
+max_line_length = 120
+trim_trailing_whitespace = true
+# IntelliJ specific settings
+ij_smart_tabs = true
+
+[*.md]
+indent_size = 2
+indent_style = space
+
+[*.go]
+indent_size = 4
+indent_style = tab
+
+[*.sql]
+indent_size = 4
+indent_style = space
