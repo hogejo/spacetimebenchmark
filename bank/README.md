@@ -9,10 +9,10 @@ SpacetimeDB being a database and server in one, see the [chat scenario](../chat/
 The benchmark runs against "a database system" from a separate client:
 
 - Any database instance:
-  - Must persist data to disk (within reasonable time)
-  - It should have feature parity with SpacetimeDB
+    - Must persist data to disk (within reasonable time)
+    - It should have feature parity with SpacetimeDB
 - One table that stores account balance information:
-  - `balances` table with columns `id` and `balance`
+    - `balances` table with columns `id` and `balance`
 - Out-of-the-box configuration for the database instance
     - No additional caching or optimisation
 
@@ -38,14 +38,6 @@ There are some rules for the benchmarking clients to keep it reasonable and fair
 - Warmup is allowed as part of the benchmark run
 - At the end of the benchmark the total sum of money must not change in the database, which the client must verify
 
-## Competing systems
-
-This is what I plan to implement here:
-
-- Benchmarking client calling reducers on SpacetimeDB
-- Benchmarking client calling stored procedures in PostgreSQL
-- Benchmarking client calling API endpoints in server with an embedded database (likely SQLite)
-
 ### Production is not like this! (Goals and non-goals)
 
 No, this is not like a production scenario. This is like the SpacetimeDB keynote: far from reality.
@@ -55,3 +47,46 @@ The goal with this benchmark is to compare apples to apples.
 This benchmark also tries to be as close as possible to the original SpacetimeDB benchmark.
 
 If you'd like a realistic production scenario, see the [chat one](../chat/README.md).
+
+## Competing systems
+
+### SpacetimeDB
+
+Implementation is pending. Maybe Clockwork Labs will join the effort.
+
+### PostgreSQL
+
+The architecture is similar to the original version I wrote in response to the SpacetimeDB keynote. Limiting the global
+maximum in-flight requests is not implemented yet.
+
+A PostgreSQL pool (via [pgx](https://github.com/jackc/pgx)) is used to manage connections. Connections are used by
+goroutine workers. Both the number of connections and the number of goroutines are configurable.
+
+### SQLite
+
+A simple Go server accepts TCP connections and responds to RPCs:
+
+- `transfer <from> <to> <amount>`
+- `get <account>`
+
+## Initial results
+
+I've only run small tests on small cloud instances (4 CPUs with 16GB RAM). The results are **scaled up** to match the
+original SpacetimeDB benchmark.
+
+| System      | Results                                  |
+|-------------|------------------------------------------|
+| SpacetimeDB | *expected 100k TPS<br/>based on keynote* |
+| PostgreSQL  | **~ 88.000 TPS**                         |
+| SQLite      | *< 2.000 TPS*                            |
+
+### Infrastructure
+
+Client and server on separate machines:
+
+- Hetzner Cloud
+- 4 dedicated CPUs
+- 16GB RAM
+- SSD storage
+
+Multiplier to match SpacetimeDB benchmark: x4

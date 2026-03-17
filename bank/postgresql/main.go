@@ -1,12 +1,19 @@
 package main
 
 import (
+	"flag"
 	"log"
+	"os"
 )
 
 func main() {
 	log.SetFlags(0)
-	config := parseConfig()
+	config, err := parseConfig()
+	if err != nil {
+		log.Printf("Failed to parse config: %s", err.Error())
+		flag.Usage()
+		os.Exit(1)
+	}
 	accounts, initialBalance, requests, err := readRequests(config.input)
 	if err != nil {
 		log.Fatal(err)
@@ -16,7 +23,7 @@ func main() {
 	}
 	config.accounts = accounts
 	config.initialBalance = initialBalance
-	printSummary(&config)
+	printSummary(config)
 	pool, err := openPool(config)
 	if err != nil {
 		log.Fatal(err)

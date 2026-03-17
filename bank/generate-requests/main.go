@@ -1,15 +1,22 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math/rand/v2"
+	"os"
 )
 
 func main() {
 	log.SetFlags(0)
-	config := parseConfig()
-	printSummary(&config)
+	config, err := parseConfig()
+	if err != nil {
+		log.Printf("Failed to parse config: %s", err.Error())
+		flag.Usage()
+		os.Exit(1)
+	}
+	printSummary(config)
 	// Pre-decide which requests are failures
 	isFailingRequest := buildFailureSchedule(config.totalRequests, config.failingRequests)
 	// Generate requests

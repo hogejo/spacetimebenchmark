@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -42,40 +41,49 @@ func getEnvOrDefault(key, fallback string) string {
 	return fallback
 }
 
-func parseConfig() Config {
+func parseConfig() (Config, error) {
 	config := Config{}
 	flag.StringVar(&config.databaseURL, "database-url", getEnvOrDefault("DATABASE_URL", defaultDatabaseURL), "PostgreSQL connection URL")
 	flag.StringVar(&config.input, "input", getEnvOrDefault("INPUT_FILE", defaultRequestsFile), "path to requests file")
 	flag.IntVar(&config.maximumConnections, "max-connections", defaultConnections, "number of parallel connections")
-	flag.IntVar(&config.maximumInFlightRequests, "max-in-flight", defaultMaxInflight, "max sequential transfers per batch")
+	flag.IntVar(&config.maximumInFlightRequests, "max-in-flight", defaultMaxInflight, "global maximum in-flight requests")
 	flag.IntVar(&config.workers, "workers", defaultWorkers, "number of workers")
 	flag.IntVar(&config.retries, "retries", defaultRetries, "number of retries for failed requests")
 	flag.DurationVar(&config.duration, "duration", defaultDuration, "benchmark duration")
 	flag.DurationVar(&config.warmupDuration, "warmup-duration", defaultWarmupDuration, "warmup duration")
 	flag.BoolVar(&config.verifyOnly, "verify-only", defaultVerifyOnly, "only verify the database")
 	flag.Parse()
+	if config.input == "" {
+		config.input = defaultRequestsFile
+	}
+	if config.databaseURL == "" {
+		config.databaseURL = defaultDatabaseURL
+	}
 	if config.verifyOnly {
-		return config
+		return config, nil
 	}
 	if config.maximumConnections <= 0 {
-		log.Fatal("The number of parallel connections must be greater than zero!")
+		return config, fmt.Errorf("the number of parallel connections must be greater than zero")
 	}
 	if config.maximumInFlightRequests <= 0 {
-		log.Fatal("The maximum in-flight requests per batch must be greater than zero!")
+		return config, fmt.Errorf("the maximum in-flight requests per batch must be greater than zero")
 	}
 	if config.workers < 1 {
-		log.Fatal("The number of workers must be greater than zero!")
+		return config, fmt.Errorf("the number of workers must be greater than zero")
+	}
+	if config.retries < 0 {
+		return config, fmt.Errorf("the number of retries must be non-negative")
 	}
 	if config.duration <= 0 {
-		log.Fatal("The benchmark duration must be greater than zero!")
+		return config, fmt.Errorf("the benchmark duration must be greater than zero")
 	}
 	if config.warmupDuration < 0 {
-		log.Fatal("The warmup duration must be non-negative!")
+		return config, fmt.Errorf("the warmup duration must be non-negative")
 	}
-	return config
+	return config, nil
 }
 
-func printSummary(config *Config) {
+func printSummary(config Config) {
 	if config.verifyOnly {
 		fmt.Println("Only verifying the database...")
 		return
@@ -91,7 +99,8 @@ func printSummary(config *Config) {
 	}
 	fmt.Printf("  maximum connections:        %d\n", config.maximumConnections)
 	fmt.Printf("  maximum in-flight requests: %d\n", config.maximumInFlightRequests)
+	fmt.Printf("  workers:                    %d\n", config.workers)
 	fmt.Printf("  retries:                    %d\n", config.retries)
-	fmt.Printf("  benchmark duration:         %s\n", config.duration.String())
-	fmt.Printf("  warmup duration:            %s\n", config.warmupDuration.String())
+	fmt.Printf("  benchmark duration:         %s\n", config.duration)
+	fmt.Printf("  warmup duration:            %s\n", config.warmupDuration)
 }

@@ -3,11 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"math"
 )
 
 const (
-	defaultCoverage        = 1.5
+	defaultZipf            = false
+	defaultCoverage        = 1.0
+	defaultAlpha           = 1.5
 	defaultAccounts        = 1_000_000
 	defaultInitialBalance  = 100_000
 	defaultTotalRequests   = 3_000_000
@@ -18,6 +20,7 @@ const (
 type Config struct {
 	zipf            bool
 	coverage        float64
+	alpha           float64
 	totalRequests   uint64
 	failingRequests uint64
 	accounts        uint64
@@ -25,40 +28,50 @@ type Config struct {
 	output          string
 }
 
-func parseConfig() Config {
+func parseConfig() (Config, error) {
 	config := Config{}
-	flag.BoolVar(&config.zipf, "zipf", false, "Use Zipf distribution")
-	flag.Float64Var(&config.coverage, "coverage", defaultCoverage, "Ratio of accounts to generate requests for or alpha when Zipf mode is used")
-	flag.Uint64Var(&config.totalRequests, "total-requests", defaultTotalRequests, "Total number of requests to generate")
-	flag.Uint64Var(&config.failingRequests, "failing-requests", defaultFailingRequests, "Number of failing requests to generate")
+	flag.BoolVar(&config.zipf, "zipf", defaultZipf, "Use Zipf distribution")
+	flag.Float64Var(&config.coverage, "coverage", defaultCoverage, "Ratio of accounts to generate requests for")
+	flag.Float64Var(&config.alpha, "alpha", defaultAlpha, "Alpha parameter for Zipf distribution")
 	flag.Uint64Var(&config.accounts, "accounts", defaultAccounts, "Number of accounts")
 	flag.Uint64Var(&config.initialBalance, "initial-balance", defaultInitialBalance, "Expected initial balance per account")
+	flag.Uint64Var(&config.totalRequests, "total-requests", defaultTotalRequests, "Total number of requests to generate")
+	flag.Uint64Var(&config.failingRequests, "failing-requests", defaultFailingRequests, "Number of failing requests to generate")
 	flag.StringVar(&config.output, "output", defaultOutput, "Output file")
 	flag.Parse()
-	if !config.zipf && (config.coverage <= 0 || config.coverage > 1) {
-		log.Fatal("The coverage percentage must be between (0,1]!")
-	}
-	if config.zipf && config.coverage <= 1.0 {
-		log.Fatal("The alpha/exponent must be greater than 1.0 for a valid Zipf distribution!")
+	if config.zipf {
+		if config.alpha <= 1.0 {
+			return config, fmt.Errorf("the alpha/exponent must be greater than 1.0 for a valid Zipf distribution")
+		}
+		if config.alpha == math.NaN() || config.alpha == math.Inf(1) || config.alpha == math.Inf(-1) {
+			return config, fmt.Errorf("the alpha/exponent must be a valid number")
+		}
+	} else {
+		if config.coverage <= 0 || config.coverage > 1 {
+			return config, fmt.Errorf("the coverage ratio must be greater than 0 and at most 1")
+		}
+		if config.coverage == math.NaN() || config.coverage == math.Inf(1) || config.coverage == math.Inf(-1) {
+			return config, fmt.Errorf("the coverage ratio must be a valid number")
+		}
 	}
 	if config.totalRequests == 0 {
-		log.Fatal("The number of total requests must be greater than zero!")
+		return config, fmt.Errorf("the number of total requests must be greater than zero")
 	}
 	if config.accounts == 0 {
-		log.Fatal("The number of accounts must be greater than zero!")
+		return config, fmt.Errorf("the number of accounts must be greater than zero")
 	}
 	if config.failingRequests > config.totalRequests {
-		log.Fatal("The number of failing requests must not be larger than the total!")
+		return config, fmt.Errorf("the number of failing requests must not be larger than the total")
 	}
 	if config.initialBalance == 0 {
-		log.Fatal("The initial balance must be greater than zero!")
+		return config, fmt.Errorf("the initial balance must be greater than zero")
 	}
-	return config
+	return config, nil
 }
 
-func printSummary(config *Config) {
+func printSummary(config Config) {
 	if config.zipf {
-		fmt.Printf("Zipf alpha (exponent): %.3f\n", config.coverage)
+		fmt.Printf("Zipf alpha (exponent): %.3f\n", config.alpha)
 	} else {
 		fmt.Printf("Coverage is %.3f, requests between the first %d accounts.\n", config.coverage, uint64(float64(config.accounts)*config.coverage))
 	}
