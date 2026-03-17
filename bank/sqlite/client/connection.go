@@ -56,6 +56,42 @@ func (c *Connection) sendTransfer(fromID, toID, amount uint64) (string, error) {
 	return strings.TrimRight(line, "\r\n"), nil
 }
 
+func (c *Connection) sendGetTotal() (string, error) {
+	c.buf = c.buf[:0]
+	c.buf = append(c.buf, "get_total\n"...)
+	if _, err := c.writer.Write(c.buf); err != nil {
+		return "", fmt.Errorf("write get_total: %w", err)
+	}
+	if err := c.writer.Flush(); err != nil {
+		return "", fmt.Errorf("flush get_total: %w", err)
+	}
+	line, err := c.reader.ReadString('\n')
+	if err != nil {
+		return "", fmt.Errorf("read get_total response: %w", err)
+	}
+	return strings.TrimRight(line, "\r\n"), nil
+}
+
+func (c *Connection) sendCountAccounts(from, to uint64) (string, error) {
+	c.buf = c.buf[:0]
+	c.buf = append(c.buf, "count_accounts "...)
+	c.buf = strconv.AppendUint(c.buf, from, 10)
+	c.buf = append(c.buf, ' ')
+	c.buf = strconv.AppendUint(c.buf, to, 10)
+	c.buf = append(c.buf, '\n')
+	if _, err := c.writer.Write(c.buf); err != nil {
+		return "", fmt.Errorf("write count_accounts: %w", err)
+	}
+	if err := c.writer.Flush(); err != nil {
+		return "", fmt.Errorf("flush count_accounts: %w", err)
+	}
+	line, err := c.reader.ReadString('\n')
+	if err != nil {
+		return "", fmt.Errorf("read count_accounts response: %w", err)
+	}
+	return strings.TrimRight(line, "\r\n"), nil
+}
+
 func (c *Connection) sendGet(accountID uint64) (string, error) {
 	c.buf = c.buf[:0]
 	c.buf = append(c.buf, "get "...)

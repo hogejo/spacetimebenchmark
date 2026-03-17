@@ -23,17 +23,13 @@ func runVerifications(config Config) error {
 }
 
 func verifyTotalBalance(conn *Connection, config Config) error {
-	var totalBalance uint64
-	for i := uint64(0); i < config.accounts; i++ {
-		response, err := conn.sendGet(i)
-		if err != nil {
-			return fmt.Errorf("get balance for account %d: %w", i, err)
-		}
-		balance, err := strconv.ParseUint(response, 10, 64)
-		if err != nil {
-			return fmt.Errorf("parse balance for account %d: %q: %w", i, response, err)
-		}
-		totalBalance += balance
+	response, err := conn.sendGetTotal()
+	if err != nil {
+		return fmt.Errorf("get total balance: %w", err)
+	}
+	totalBalance, err := strconv.ParseUint(response, 10, 64)
+	if err != nil {
+		return fmt.Errorf("parse total balance: %q: %w", response, err)
 	}
 	expected := config.accounts * config.initialBalance
 	if totalBalance != expected {
@@ -44,16 +40,13 @@ func verifyTotalBalance(conn *Connection, config Config) error {
 }
 
 func verifyAccounts(conn *Connection, config Config) error {
-	var totalAccounts uint64
-	for i := uint64(0); i < config.accounts; i++ {
-		response, err := conn.sendGet(i)
-		if err != nil {
-			return fmt.Errorf("get account %d: %w", i, err)
-		}
-		if _, err := strconv.ParseUint(response, 10, 64); err != nil {
-			return fmt.Errorf("account %d returned unexpected response: %q", i, response)
-		}
-		totalAccounts++
+	response, err := conn.sendCountAccounts(0, config.accounts-1)
+	if err != nil {
+		return fmt.Errorf("count accounts: %w", err)
+	}
+	totalAccounts, err := strconv.ParseUint(response, 10, 64)
+	if err != nil {
+		return fmt.Errorf("parse count_accounts: %q: %w", response, err)
 	}
 	expected := config.accounts
 	if totalAccounts != expected {

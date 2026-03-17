@@ -54,12 +54,12 @@ func transfer(db *sql.DB, fromID, toID, amount uint64) error {
 	}
 	err = tx.QueryRow("SELECT balance FROM balances WHERE id = ?", lowID).Scan(&balance)
 	if err != nil {
-		return fmt.Errorf("account_not_found")
+		return fmt.Errorf("account_not_found: %d", lowID)
 	}
 	var balance2 uint64
 	err = tx.QueryRow("SELECT balance FROM balances WHERE id = ?", highID).Scan(&balance2)
 	if err != nil {
-		return fmt.Errorf("account_not_found")
+		return fmt.Errorf("account_not_found: %d", highID)
 	}
 
 	// Determine from_balance
@@ -68,7 +68,7 @@ func transfer(db *sql.DB, fromID, toID, amount uint64) error {
 		fromBalance = balance2
 	}
 	if fromBalance < amount {
-		return fmt.Errorf("insufficient_funds")
+		return fmt.Errorf("insufficient_funds: %d < %d", fromBalance, amount)
 	}
 
 	result, err := tx.Exec(transferSQL, fromID, toID, amount)
@@ -89,6 +89,24 @@ func getBalance(db *sql.DB, accountID uint64) (uint64, error) {
 		return 0, fmt.Errorf("account_not_found")
 	}
 	return balance, nil
+}
+
+func getTotal(db *sql.DB) (uint64, error) {
+	var total uint64
+	err := db.QueryRow("SELECT COALESCE(SUM(balance), 0) FROM balances").Scan(&total)
+	if err != nil {
+		return 0, fmt.Errorf("get total: %w", err)
+	}
+	return total, nil
+}
+
+func countAccounts(db *sql.DB, from, to uint64) (uint64, error) {
+	var count uint64
+	err := db.QueryRow("SELECT COUNT(*) FROM balances WHERE id >= ? AND id <= ?", from, to).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("get accounts: %w", err)
+	}
+	return count, nil
 }
 
 func prepareDatabase(db *sql.DB, accounts, initialBalance uint64) error {
