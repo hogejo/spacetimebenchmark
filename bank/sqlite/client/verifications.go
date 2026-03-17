@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -12,10 +13,12 @@ func runVerifications(config Config) error {
 	}
 	defer conn.Close()
 
+	log.Println("Verifying total balance ...")
 	err = verifyTotalBalance(conn, config)
 	if err != nil {
 		return err
 	}
+	log.Println("Verifying numbers of accounts ...")
 	return verifyAccounts(conn, config)
 }
 

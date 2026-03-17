@@ -15,6 +15,7 @@ custom implemented. The requirements are:
   - `balances` table with columns `id` and `balance`
 - Out-of-the-box configuration for the database instance
   - No additional caching or optimisation
+  - Configuration changes and optimisation to match SpacetimeDB (inner) workings are allowed
 
 ## Benchmark requirements
 

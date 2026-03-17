@@ -20,6 +20,7 @@ func main() {
 	if !config.verifyOnly {
 		runBenchmark(config, requests)
 	}
+	log.Println("Verifying the database ...")
 	if err := runVerifications(config); err != nil {
 		log.Fatal(err)
 	}

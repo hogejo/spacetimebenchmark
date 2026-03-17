@@ -16,7 +16,8 @@ var schemaSQL string
 var transferSQL string
 
 func openDatabase(databaseFile string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", databaseFile)
+	dsn := fmt.Sprintf("%s?_journal_mode=WAL&_synchronous=NORMAL&_busy_timeout=5000&_txlock=immediate", databaseFile)
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite database: %w", err)
 	}
