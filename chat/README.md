@@ -65,10 +65,8 @@ The benchmark is run from **one standard client** against all server-side implem
 - All expected messages must be verified at the end of the benchmark
   - This verification must be repeated after a database shutdown and restart
 
-### Pending requirements
-
 The failure modes of the different architectures are unknown. Because of that, the benchmark is using unlimited
-throughput for now: provided that all checks pass, each client/user should send as many messages as possible.
+throughput: provided that all checks pass, each client/user should send as many messages as possible.
 
 ## Client implementation
 
